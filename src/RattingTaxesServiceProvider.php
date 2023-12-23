@@ -3,7 +3,7 @@
 namespace Helious\SeatRattingTaxes;
 
 use Seat\Services\AbstractSeatPlugin;
-
+use Helious\SeatRattingTaxes\Services\SystemNameExtractor;
 
 class RattingTaxesServiceProvider extends AbstractSeatPlugin
 {
@@ -12,12 +12,20 @@ class RattingTaxesServiceProvider extends AbstractSeatPlugin
         $this->mergeConfigFrom(__DIR__ . '/Config/seat-ratting-taxes.php', 'seat-ratting-taxes');
         $this->mergeConfigFrom(__DIR__ . '/Config/seat-ratting-taxes.sidebar.php', 'package.sidebar.tools.entries');
         $this->registerPermissions(__DIR__ . '/Config/seat-ratting-taxes.permissions.php', 'seat-ratting-taxes');
+
+        $this->app->singleton(SystemNameExtractor::class, function ($app) {
+            return new SystemNameExtractor();
+        });
     }
 
     public function boot()
     {
         $this->loadRoutesFrom(__DIR__.'/routes.php');
         $this->loadViewsFrom(__DIR__.'/resources/views', 'seat-ratting-taxes');
+
+        \Blade::directive('extractSystemName', function ($expression) {
+            return "<?php echo \Helious\SeatRattingTaxes\Services\SystemNameExtractor::extract($expression); ?>";
+        });
     }
 
     /**

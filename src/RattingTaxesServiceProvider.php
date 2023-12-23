@@ -9,9 +9,9 @@ class RattingTaxesServiceProvider extends AbstractSeatPlugin
 {
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__ . '/Config/seat-ratting-taxes.php', 'seat-moons');
+        $this->mergeConfigFrom(__DIR__ . '/Config/seat-ratting-taxes.php', 'seat-ratting-taxes');
         $this->mergeConfigFrom(__DIR__ . '/Config/seat-ratting-taxes.sidebar.php', 'package.sidebar.tools.entries');
-        $this->registerPermissions(__DIR__ . '/Config/seat-ratting-taxes.permissions.php', 'seat-moons');
+        $this->registerPermissions(__DIR__ . '/Config/seat-ratting-taxes.permissions.php', 'seat-ratting-taxes');
     }
 
     public function boot()

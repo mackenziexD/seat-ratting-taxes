@@ -1,6 +1,6 @@
 <?php
 
-namespace Helious\SeatMoons\Http\Controllers;
+namespace Helious\SeatRattingTaxes\Http\Controllers;
 
 use Seat\Web\Http\Controllers\Controller;
 use Seat\Eveapi\Models\Industry\CorporationIndustryMiningExtraction;

@@ -11,7 +11,7 @@ use Seat\Eveapi\Models\Corporation\CorporationInfo;
  *
  * @package Author\Seat\YourPackage\Http\Controllers
  */
-class MoonsController extends Controller
+class SeatRattingTaxes extends Controller
 {
     /** 
      * @return \Illuminate\View\View

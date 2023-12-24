@@ -9,7 +9,7 @@ use Helious\SeatRattingTaxes\Services\SystemNameExtractor;
 use Carbon\Carbon;
 use DataTables;
 use Illuminate\Http\Request;
-
+use Cache;
 use Maatwebsite\Excel\Facades\Excel;
 use Helious\SeatRattingTaxes\Exports\JournalExport;
 
@@ -25,40 +25,42 @@ class RattingTaxController extends Controller
 
     public function getUniqueSystemNames()
     {
-        $startOfMonth = Carbon::now()->startOfMonth();
-        $endOfMonth = Carbon::now()->endOfMonth();
-        $descriptions = CorporationWalletJournal::where('corporation_id', 2014367342)
-            ->where('ref_type', 'bounty_prizes')
-            ->where('amount', '>', 0)
-            ->whereBetween('date', [$startOfMonth, $endOfMonth])
-            ->pluck('description'); // Get a collection of descriptions
-    
-        $systemNames = collect($descriptions)
-            ->map(function ($description) {
-                // Use the service to extract the system name
-                return SystemNameExtractor::extract($description);
-            })
-            ->unique()
-            ->reject(function ($name) {
-                // Reject 'Unknown System' if you do not wish to include it in the filters
-                return $name === 'Unknown System';
-            })
-            ->values();
-    
-            $systems = collect($systemNames)->map(function ($systemName) {
-                // Find the system in the SolarSystem model
-                $system = SolarSystem::with('region')->where('name', $systemName)->first();
+        return Cache::remember('unique_system_names', 60 * 60, function () {
+            $startOfMonth = Carbon::now()->startOfMonth();
+            $endOfMonth = Carbon::now()->endOfMonth();
+            $descriptions = CorporationWalletJournal::where('corporation_id', 2014367342)
+                ->where('ref_type', 'bounty_prizes')
+                ->where('amount', '>', 0)
+                ->whereBetween('date', [$startOfMonth, $endOfMonth])
+                ->pluck('description'); // Get a collection of descriptions
         
-                return [
-                    'name' => $systemName,
-                    'region' => $system ? $system->region->name : 'Unknown Region'
-                ];
-            });
+            $systemNames = collect($descriptions)
+                ->map(function ($description) {
+                    // Use the service to extract the system name
+                    return SystemNameExtractor::extract($description);
+                })
+                ->unique()
+                ->reject(function ($name) {
+                    // Reject 'Unknown System' if you do not wish to include it in the filters
+                    return $name === 'Unknown System';
+                })
+                ->values();
         
-            // Group the systems by region
-            $groupedSystems = $systems->groupBy('region');
+                $systems = collect($systemNames)->map(function ($systemName) {
+                    // Find the system in the SolarSystem model
+                    $system = SolarSystem::with('region')->where('name', $systemName)->first();
+            
+                    return [
+                        'name' => $systemName,
+                        'region' => $system ? $system->region->name : 'Unknown Region'
+                    ];
+                });
+            
+                // Group the systems by region
+                $groupedSystems = $systems->groupBy('region');
         
             return $groupedSystems;
+        });
     }
 
     public function index()
@@ -80,11 +82,12 @@ class RattingTaxController extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
 
-        $query = CorporationWalletJournal::where('corporation_id', 2014367342)
+        $query = CorporationWalletJournal::query()
+            ->where('corporation_id', 2014367342)
             ->where('ref_type', 'bounty_prizes')
             ->where('amount', '>', 0)
             ->whereBetween('date', [$startOfMonth, $endOfMonth])
-            ->select('date', 'amount', 'description', 'second_party_id');
+            ->select(['date', 'amount', 'description', 'second_party_id']);
 
         if ($request->has('systemNames')) {
             $systemNames = $request->systemNames;

@@ -7,6 +7,9 @@ Beacons plugin for [SeAT](https://github.com/eveseat/seat) and was created out o
 
 ![https://i.imgur.com/gdTAtrV.png](https://i.imgur.com/gdTAtrV.png)
 
+## Dependencies
+[https://packagist.org/packages/maatwebsite/excel](https://packagist.org/packages/maatwebsite/excel)
+
 ## Installation
 
 You can install the package via composer:

@@ -79,8 +79,8 @@ class RattingTaxController extends Controller
 
     public function getJournalData(Request $request)
     {
-        $startOfMonth = Carbon::now()->startOfMonth();
-        $endOfMonth = Carbon::now()->endOfMonth();
+        $startOfMonth = $request->input('start_date', Carbon::now()->startOfMonth());
+        $endOfMonth = $request->input('end_date', Carbon::now()->endOfMonth());
 
         $query = CorporationWalletJournal::query()
             ->where('corporation_id', 2014367342)

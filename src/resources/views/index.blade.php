@@ -4,52 +4,38 @@
 
 @section('full')
 <style>
-.icon {
-  width: 3rem;
-  height: 3rem;
-}
-
-.icon i {
-  font-size: 2.25rem;
-}
-
-.icon-shape {
-  display: inline-flex;
-  padding: 12px;
-  text-align: center;
-  border-radius: 50%;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-shape i {
-  font-size: 1.25rem;
-}
 .dropdown-menu {
     max-height: 300px; /* Adjust the height as needed */
     overflow-y: auto; /* Enable vertical scrolling */
 }
 </style>
 <div class="row">
-    <div class="col-xl-4 col-lg-6">
-        <div class="card card-stats mb-4 mb-xl-0">
-        <div class="card-body">
-            <div class="row">
-            <div class="col">
-                <span class="h2 font-weight-bold mb-0">{{number_format($totalAmountThisMonth, 2)}} <sup>ISK</sup></span>
-            </div>
-            <div class="col-auto">
-                <div class="icon icon-shape bg-primary text-white rounded-circle shadow">
-                <i class="fas fa-chart-bar"></i>
-                </div>
-            </div>
-            </div>
-            <p class="mt-3 mb-0 text-muted text-sm">
-            <span class="text-nowrap">Total Ratting Taxes for {{ now()->format('F Y') }}</span>
-            </p>
-        </div>
-        </div>
+    <div class="col-md-4 col-sm-6">
+        <!-- Online Badge -->
+        <div class="info-box">
+        <span class="info-box-icon bg-green elevation-1"><i class="far fa-money-bill-alt"></i></span>
+        <div class="info-box-content">
+            <span class="info-box-text">Total Ratting Taxes for {{ now()->format('F Y') }} (This Month)</span>
+            <span class="info-box-number">
+                {{number_format($totalAmountThisMonth, 2)}} <sup>ISK</sup>
+            </span>
+        </div><!-- /.info-box-content -->
+        </div><!-- /.info-box -->
     </div>
+
+    <div class="col-md-4 col-sm-6">
+        <!-- Online Badge -->
+        <div class="info-box">
+        <span class="info-box-icon bg-red elevation-1"><i class="far fa-money-bill-alt"></i></span>
+        <div class="info-box-content">
+            <span class="info-box-text">Total Ratting Taxes for {{ now()->format('F Y') }} (Last Month)</span>
+            <span class="info-box-number">
+                {{number_format($totalAmountThisMonth, 2)}} <sup>ISK</sup>
+            </span>
+        </div><!-- /.info-box-content -->
+        </div><!-- /.info-box -->
+    </div>
+
 </div>
 
 <div class="row">
@@ -140,7 +126,18 @@ $(document).ready(function() {
         ],
         dom: 'Bfrtip',
         buttons: [
-            'excel'
+            'excel',
+            {
+                text: 'Previous Month',
+                action: function (e, dt, node, config) {
+                    var currentDate = new Date();
+                    var firstDayPreviousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+                    var lastDayPreviousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+
+                    // Update your AJAX request here
+                    table.ajax.url('{{ route("seat-ratting-taxes::journal-data") }}?start_date=' + firstDayPreviousMonth.toISOString() + '&end_date=' + lastDayPreviousMonth.toISOString()).load();
+                }
+            }
         ],
         // Initialize the Buttons extension
         searching: false,

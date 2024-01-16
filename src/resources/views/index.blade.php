@@ -30,7 +30,7 @@
         <div class="info-box-content">
             <span class="info-box-text">Total Ratting Taxes for {{ now()->format('F Y') }} (Last Month)</span>
             <span class="info-box-number">
-                {{number_format($totalAmountThisMonth, 2)}} <sup>ISK</sup>
+                {{number_format($totalAmountLastMonth, 2)}} <sup>ISK</sup>
             </span>
         </div><!-- /.info-box-content -->
         </div><!-- /.info-box -->
@@ -115,7 +115,7 @@ $(document).ready(function() {
             }
         },
         columns: [
-            { data: 'date', name: 'date' },
+            { data: 'formatted_date', name: 'date' },
             { data: 'amount', name: 'amount' },
             { data: 'system_name', name: 'system_name' },
             {
@@ -128,13 +128,22 @@ $(document).ready(function() {
         buttons: [
             'excel',
             {
+                text: 'This Month',
+                action: function (e, dt, node, config) {
+                    var currentDate = new Date();
+                    var firstDayCurrentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                    var lastDayCurrentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+                    table.ajax.url('{{ route("seat-ratting-taxes::journal-data") }}?start_date=' + firstDayCurrentMonth.toISOString() + '&end_date=' + lastDayCurrentMonth.toISOString()).load();
+                }
+            },
+            {
                 text: 'Previous Month',
                 action: function (e, dt, node, config) {
                     var currentDate = new Date();
                     var firstDayPreviousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
                     var lastDayPreviousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
 
-                    // Update your AJAX request here
                     table.ajax.url('{{ route("seat-ratting-taxes::journal-data") }}?start_date=' + firstDayPreviousMonth.toISOString() + '&end_date=' + lastDayPreviousMonth.toISOString()).load();
                 }
             }

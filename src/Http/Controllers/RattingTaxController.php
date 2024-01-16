@@ -65,16 +65,25 @@ class RattingTaxController extends Controller
 
     public function index()
     {
-        $startOfMonth = Carbon::now()->startOfMonth();
-        $endOfMonth = Carbon::now()->endOfMonth();
+        $ThisMonthsStart = Carbon::now()->startOfMonth();
+        $ThisMonthsEnd = Carbon::now()->endOfMonth();
+        $LastMonthsStart = Carbon::now()->subMonth()->startOfMonth();
+        $LastMonthsEnd = Carbon::now()->subMonth()->endOfMonth();
+
         $totalAmountThisMonth = CorporationWalletJournal::where('corporation_id', 2014367342)
             ->where('ref_type', 'bounty_prizes')
             ->where('amount', '>', 0)
-            ->whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->whereBetween('date', [$ThisMonthsStart, $ThisMonthsEnd])
+            ->sum('amount');
+
+        $totalAmountLastMonth = CorporationWalletJournal::where('corporation_id', 2014367342)
+            ->where('ref_type', 'bounty_prizes')
+            ->where('amount', '>', 0)
+            ->whereBetween('date', [$LastMonthsStart, $LastMonthsEnd])
             ->sum('amount');
 
         $uniqueSystemNames = $this->getUniqueSystemNames();
-        return view('seat-ratting-taxes::index', compact('totalAmountThisMonth', 'uniqueSystemNames'));
+        return view('seat-ratting-taxes::index', compact('totalAmountThisMonth', 'totalAmountLastMonth', 'uniqueSystemNames'));
     }
 
     public function getJournalData(Request $request)

@@ -4,56 +4,41 @@
 
 @section('full')
 <style>
-.icon {
-  width: 3rem;
-  height: 3rem;
-}
-
-.icon i {
-  font-size: 2.25rem;
-}
-
-.icon-shape {
-  display: inline-flex;
-  padding: 12px;
-  text-align: center;
-  border-radius: 50%;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-shape i {
-  font-size: 1.25rem;
-}
 .dropdown-menu {
     max-height: 300px; /* Adjust the height as needed */
     overflow-y: auto; /* Enable vertical scrolling */
 }
 </style>
 <div class="row">
-    <div class="col-xl-4 col-lg-6">
-        <div class="card card-stats mb-4 mb-xl-0">
-        <div class="card-body">
-            <div class="row">
-            <div class="col">
-                <span class="h2 font-weight-bold mb-0"><span id="totalAmountThisMonth">{{ number_format($totalAmountThisMonth, 2) }}</span> <sup>ISK</sup></span>
-            </div>
-            <div class="col-auto">
-                <div class="icon icon-shape bg-primary text-white rounded-circle shadow">
-                <i class="fas fa-chart-bar"></i>
-                </div>
-            </div>
-            </div>
-            <p class="mt-3 mb-0 text-muted text-sm">
-            <span class="text-nowrap">Total Ratting Taxes for <span id="currentMonth">{{ now()->format('F Y') }}</span></span>
-            </p>
-        </div>
-        </div>
+    <div class="col-md-4 col-sm-6">
+        <!-- Online Badge -->
+        <div class="info-box">
+        <span class="info-box-icon elevation-1 bg-green"><i class="far fa-money-bill-alt"></i></span>
+        <div class="info-box-content">
+            <span class="info-box-text">Total Ratting Taxes for <span id="currentMonth">{{ now()->format('F Y') }}</span> (This Month)</span>
+            <span class="info-box-number">
+                <span id="totalAmountThisMonth">{{ number_format($totalAmountThisMonth, 2) }}</span> <sup>ISK</sup>
+            </span>
+        </div><!-- /.info-box-content -->
+        </div><!-- /.info-box -->
+    </div>
+
+    <div class="col-md-4 col-sm-6">
+        <!-- Online Badge -->
+        <div class="info-box">
+        <span class="info-box-icon elevation-1 bg-red"><i class="far fa-money-bill-alt"></i></span>
+        <div class="info-box-content">
+            <span class="info-box-text">Total Ratting Taxes for <span id="lastMonth">{{ now()->subMonth()->format('F Y') }}</span> (Last Month)</span>
+            <span class="info-box-number">
+                <span id="totalAmountLastMonth">{{ number_format($totalAmountLastMonth, 2) }}</span> <sup>ISK</sup>
+            </span>
+        </div><!-- /.info-box-content -->
+        </div><!-- /.info-box -->
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-12">
+<div class="row">
+    <div class="col-md-12 mt-4">
         <div class="card shadow">
 
         <div class="card-header border-0">
@@ -157,22 +142,39 @@ $(document).ready(function() {
         ],
         dom: 'Bfrtip',
         buttons: [
-            'excel'
+            'excel',
         ],
         // Initialize the Buttons extension
         searching: false,
         lengthMenu: [[10, 20, 50, 100, -1], [10, 20, 50, 100, "All"]], // Add length menu for pagination
         pageLength: 50, // Set default page length
+        drawCallback: function() {
+            hideLoadingIndicator();
+        }
     });
+
+    function showLoadingIndicator() {
+        console.log("show");
+        $('#walletJournalTable tbody').hide();
+        $('#walletJournalTable_processing').show();
+    }
+
+    function hideLoadingIndicator() {
+        console.log("hide")
+        $('#walletJournalTable tbody').show();
+        $('#walletJournalTable_processing').hide();
+    }
 
     $('#monthPicker').on('change', function() {
         var selectedMonth = $(this).val();
+        showLoadingIndicator();
         updateCards(selectedMonth);
-        table.draw(); // Redraw the table to apply the filters
+        table.draw();
     });
 
     $('input.system-name-filter').on('change', function() {
-        table.draw(); // Redraw the table to apply the filters
+        showLoadingIndicator();
+        table.draw();
     });
 
     function updateCards(selectedMonth) {
@@ -185,6 +187,10 @@ $(document).ready(function() {
                 $('#totalAmountThisMonth').text(data.totalAmountThisMonth);
                 $('#lastMonth').text(data.lastMonthName);
                 $('#totalAmountLastMonth').text(data.totalAmountLastMonth);
+                hideLoadingIndicator();
+            },
+            error: function() {
+                hideLoadingIndicator();
             }
         });
     }

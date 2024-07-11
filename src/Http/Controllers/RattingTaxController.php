@@ -68,42 +68,51 @@ class RattingTaxController extends Controller
         $selectedMonth = $request->input('month');
         $currentMonthStart = Carbon::createFromFormat('Y-m', $selectedMonth)->startOfMonth();
         $currentMonthEnd = $currentMonthStart->copy()->endOfMonth();
-
+    
         $previousMonthStart = $currentMonthStart->copy()->subMonth()->startOfMonth();
         $previousMonthEnd = $currentMonthStart->copy()->subMonth()->endOfMonth();
-
+    
         $totalAmountThisMonth = CorporationWalletJournal::where('corporation_id', 2014367342)
             ->where('ref_type', 'bounty_prizes')
             ->where('amount', '>', 0)
             ->whereBetween('date', [$currentMonthStart, $currentMonthEnd])
             ->sum('amount');
-
+    
         $totalAmountLastMonth = CorporationWalletJournal::where('corporation_id', 2014367342)
             ->where('ref_type', 'bounty_prizes')
             ->where('amount', '>', 0)
             ->whereBetween('date', [$previousMonthStart, $previousMonthEnd])
             ->sum('amount');
-
+    
         return response()->json([
             'currentMonthName' => $currentMonthStart->format('F Y'),
             'totalAmountThisMonth' => number_format($totalAmountThisMonth, 2),
             'lastMonthName' => $previousMonthStart->format('F Y'),
             'totalAmountLastMonth' => number_format($totalAmountLastMonth, 2),
         ]);
-    }
+    }    
 
     public function index()
     {
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
+        $lastMonthStart = Carbon::now()->subMonth()->startOfMonth();
+        $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
+        
         $totalAmountThisMonth = CorporationWalletJournal::where('corporation_id', 2014367342)
             ->where('ref_type', 'bounty_prizes')
             ->where('amount', '>', 0)
             ->whereBetween('date', [$startOfMonth, $endOfMonth])
             ->sum('amount');
+        
+        $totalAmountLastMonth = CorporationWalletJournal::where('corporation_id', 2014367342)
+            ->where('ref_type', 'bounty_prizes')
+            ->where('amount', '>', 0)
+            ->whereBetween('date', [$lastMonthStart, $lastMonthEnd])
+            ->sum('amount');
 
         $uniqueSystemNames = $this->getUniqueSystemNames();
-        return view('seat-ratting-taxes::index', compact('totalAmountThisMonth', 'uniqueSystemNames'));
+        return view('seat-ratting-taxes::index', compact('totalAmountThisMonth', 'totalAmountLastMonth', 'uniqueSystemNames'));
     }
 
     public function getJournalData(Request $request)

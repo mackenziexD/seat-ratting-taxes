@@ -63,6 +63,35 @@ class RattingTaxController extends Controller
         });
     }
 
+    public function getMonthlyData(Request $request)
+    {
+        $selectedMonth = $request->input('month');
+        $currentMonthStart = Carbon::createFromFormat('Y-m', $selectedMonth)->startOfMonth();
+        $currentMonthEnd = $currentMonthStart->copy()->endOfMonth();
+
+        $previousMonthStart = $currentMonthStart->copy()->subMonth()->startOfMonth();
+        $previousMonthEnd = $currentMonthStart->copy()->subMonth()->endOfMonth();
+
+        $totalAmountThisMonth = CorporationWalletJournal::where('corporation_id', 2014367342)
+            ->where('ref_type', 'bounty_prizes')
+            ->where('amount', '>', 0)
+            ->whereBetween('date', [$currentMonthStart, $currentMonthEnd])
+            ->sum('amount');
+
+        $totalAmountLastMonth = CorporationWalletJournal::where('corporation_id', 2014367342)
+            ->where('ref_type', 'bounty_prizes')
+            ->where('amount', '>', 0)
+            ->whereBetween('date', [$previousMonthStart, $previousMonthEnd])
+            ->sum('amount');
+
+        return response()->json([
+            'currentMonthName' => $currentMonthStart->format('F Y'),
+            'totalAmountThisMonth' => number_format($totalAmountThisMonth, 2),
+            'lastMonthName' => $previousMonthStart->format('F Y'),
+            'totalAmountLastMonth' => number_format($totalAmountLastMonth, 2),
+        ]);
+    }
+
     public function index()
     {
         $startOfMonth = Carbon::now()->startOfMonth();
@@ -79,8 +108,8 @@ class RattingTaxController extends Controller
 
     public function getJournalData(Request $request)
     {
-        $startOfMonth = Carbon::now()->startOfMonth();
-        $endOfMonth = Carbon::now()->endOfMonth();
+        $startOfMonth = $request->input('start_date', Carbon::now()->startOfMonth());
+        $endOfMonth = $request->input('end_date', Carbon::now()->endOfMonth());
 
         $query = CorporationWalletJournal::query()
             ->where('corporation_id', 2014367342)

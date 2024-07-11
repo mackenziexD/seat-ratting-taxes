@@ -36,7 +36,7 @@
         <div class="card-body">
             <div class="row">
             <div class="col">
-                <span class="h2 font-weight-bold mb-0">{{number_format($totalAmountThisMonth, 2)}} <sup>ISK</sup></span>
+                <span class="h2 font-weight-bold mb-0"><span id="totalAmountThisMonth">{{ number_format($totalAmountThisMonth, 2) }}</span> <sup>ISK</sup></span>
             </div>
             <div class="col-auto">
                 <div class="icon icon-shape bg-primary text-white rounded-circle shadow">
@@ -45,15 +45,15 @@
             </div>
             </div>
             <p class="mt-3 mb-0 text-muted text-sm">
-            <span class="text-nowrap">Total Ratting Taxes for {{ now()->format('F Y') }}</span>
+            <span class="text-nowrap">Total Ratting Taxes for <span id="currentMonth">{{ now()->format('F Y') }}</span></span>
             </p>
         </div>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-12 mt-4">
+<div class="row mt-4">
+    <div class="col-md-12">
         <div class="card shadow">
 
         <div class="card-header border-0">
@@ -83,6 +83,16 @@
                                         @endforeach
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="monthPicker">Select Month</label>
+                                <select id="monthPicker" class="form-control">
+                                    @for ($i = 0; $i < 12; $i++)
+                                        <option value="{{ now()->subMonths($i)->format('Y-m') }}">{{ now()->subMonths($i)->format('F Y') }}</option>
+                                    @endfor
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -126,10 +136,17 @@ $(document).ready(function() {
                 $('input.system-name-filter:checked').each(function() {
                     d.systemNames.push(this.value);
                 });
+
+                // Get selected month
+                var selectedMonth = $('#monthPicker').val();
+                if (selectedMonth) {
+                    d.start_date = new Date(selectedMonth + '-01').toISOString();
+                    d.end_date = new Date(new Date(selectedMonth + '-01').setMonth(new Date(selectedMonth + '-01').getMonth() + 1) - 1).toISOString();
+                }
             }
         },
         columns: [
-            { data: 'date', name: 'date' },
+            { data: 'formatted_date', name: 'date' },
             { data: 'amount', name: 'amount' },
             { data: 'system_name', name: 'system_name' },
             {
@@ -148,9 +165,29 @@ $(document).ready(function() {
         pageLength: 50, // Set default page length
     });
 
+    $('#monthPicker').on('change', function() {
+        var selectedMonth = $(this).val();
+        updateCards(selectedMonth);
+        table.draw(); // Redraw the table to apply the filters
+    });
+
     $('input.system-name-filter').on('change', function() {
         table.draw(); // Redraw the table to apply the filters
     });
+
+    function updateCards(selectedMonth) {
+        $.ajax({
+            url: '{{ route("seat-ratting-taxes::get-monthly-data") }}',
+            method: 'GET',
+            data: { month: selectedMonth },
+            success: function(data) {
+                $('#currentMonth').text(data.currentMonthName);
+                $('#totalAmountThisMonth').text(data.totalAmountThisMonth);
+                $('#lastMonth').text(data.lastMonthName);
+                $('#totalAmountLastMonth').text(data.totalAmountLastMonth);
+            }
+        });
+    }
 });
 </script>
 @endpush

@@ -20,5 +20,9 @@ Route::group([
         'uses' => 'RattingTaxController@getJournalData',
         'as' => 'seat-ratting-taxes::journal-data',
     ]);
+    Route::get('/get-monthly-data', [
+        'uses' => 'RattingTaxController@getMonthlyData',
+        'as' => 'seat-ratting-taxes::get-monthly-data',
+    ]);
 
 });
